@@ -11,7 +11,7 @@ class ATurtleAIController;
 class UNiagaraSystem;
 class USoundCue;
 
-UCLASS()
+UCLASS(Blueprintable)
 class TESTASSIGNMENT_API ATurtleCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -28,13 +28,29 @@ protected:
 public:	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Movemet")
+	FVector GoalLocation;
 	
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float MaxWalkSpeed = 400;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Movement")
-	bool bIsResting = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float RotationRate = 200;
+	
+	UFUNCTION(BlueprintCallable)
+	ATurtleAIController* GetAIController() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float GetMovementDirection() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void SetMovementType(TEnumAsByte<EMovementType> ExternMovement);
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool GetRestingCondition();
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void OnGoal();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	UNiagaraSystem* Confetti;
@@ -47,44 +63,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	USoundCue* GoalSound;
-	
-	UFUNCTION(BlueprintCallable)
-	ATurtleAIController* GetAIController() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void SetGoalLocation(const FVector Location);
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	FVector GetGoalLocation() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	float GetMovementDirection() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void SetMovementType(TEnumAsByte<EMovementType> ExternMovement);
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool GetRestingCondition();
-	
-	UFUNCTION(BlueprintCallable)
-	void SetNiagaraSystems(UNiagaraSystem* Confettir, UNiagaraSystem* Smoker);
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void OnGoal();
-
-	UFUNCTION(BlueprintCallable, Category = "Spawn")
-	void SetSkeletalMesh(USkeletalMesh* SkeletalMesh, UAnimBlueprint* AnimBlueprint, FVector RelativeLocation = FVector::ZeroVector, FRotator RelativeRotation = FRotator::ZeroRotator);
-
-	UFUNCTION(BlueprintCallable, Category = "Spawn")
-	void SetGoalSound(USoundCue* GoalCue);
-
-	UFUNCTION(BlueprintCallable, Category = "Spawn")
-	void SetPoofSound(USoundCue* PoofCue);
 	
 protected:
 	UPROPERTY()
-	FVector GoalLocation;
-
+	bool bIsResting = false;
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void WalkForward();
@@ -109,18 +92,6 @@ private:
 
 	UPROPERTY()
 	UCharacterMovementComponent* MovementComponent;
-
-	UPROPERTY()
-	USkeletalMesh* AlternateSkeletalMesh;
-
-	UPROPERTY()
-	UAnimBlueprint* AlternateAnimBlueprint;
-
-	UPROPERTY()
-	USoundCue* AlternatePoofCue;
-
-	UPROPERTY()
-	USoundCue* AlternateGoalCue;
 
 	UPROPERTY()
 	ATurtleAIController* CurrentAIController;

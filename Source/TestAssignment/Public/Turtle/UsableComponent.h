@@ -7,7 +7,7 @@
 #include "UsableComponent.generated.h"
 
 
-UCLASS()
+UCLASS(Blueprintable)
 class TESTASSIGNMENT_API UUsableComponent : public UStaticMeshComponent
 {
 	GENERATED_BODY()

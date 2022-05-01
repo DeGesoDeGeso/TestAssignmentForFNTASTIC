@@ -22,41 +22,6 @@ ATurtleCharacter::ATurtleCharacter()
 	GoalAudioComponent = CreateDefaultSubobject<UAudioComponent>("GoalAudioComponent");
 	GoalAudioComponent->SetupAttachment(GetRootComponent());
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshAsset(TEXT("SkeletalMesh'/Game/Assets/Turtle/Meshes/SK_Fox.SK_Fox'"));
-	static ConstructorHelpers::FObjectFinder<UClass> AnimBlueprintAsset(TEXT("Class '/Game/Blueprint/AB_Turtle.AB_Turtle_C'"));
-	static ConstructorHelpers::FObjectFinder<USoundCue> PoofCueAsset(TEXT("SoundCue'/Game/Assets/Turtle/Sounds/SoundCue/Cue_Poof.Cue_Poof'"));
-	static ConstructorHelpers::FObjectFinder<USoundCue> GoalCueAsset(TEXT("SoundCue'/Game/Assets/Turtle/Sounds/SoundCue/Cue_Goal.Cue_Goal'"));
-
-	USkeletalMeshComponent* SkeletalMesh = GetMesh();
-	
-	if (SkeletalMeshAsset.Succeeded())
-	{
-		SkeletalMesh->SetSkeletalMesh(SkeletalMeshAsset.Object);
-		FVector MeshLocation = SkeletalMesh->GetRelativeLocation();
-		MeshLocation.Z -= 36.0f;
-		SkeletalMesh->SetRelativeLocation(MeshLocation);
-		FRotator MeshRotation = SkeletalMesh->GetRelativeRotation();
-		MeshRotation.Yaw -= 90.0f;
-		SkeletalMesh->SetRelativeRotation(MeshRotation);
-		
-		if (AnimBlueprintAsset.Succeeded())
-		{
-			AnimBlueprintClass = AnimBlueprintAsset.Object;
-			SkeletalMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-			SkeletalMesh->SetAnimInstanceClass(AnimBlueprintClass);
-		}
-	}
-	
-	if (PoofCueAsset.Succeeded())
-	{
-		PoofAudioComponent->SetSound(PoofCueAsset.Object);
-	}
-	if (GoalCueAsset.Succeeded())
-	{
-		GoalAudioComponent->SetSound(GoalCueAsset.Object);
-		GoalAudioComponent->bAutoActivate = false;
-	}
-
 	GetCapsuleComponent()->SetCapsuleHalfHeight(34.0f);
 	
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -69,9 +34,6 @@ void ATurtleCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-
-	
 	UCharacterMovementComponent* CurrentMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
 	AController* CurrentController = GetController();
 	CurrentAIController = Cast<ATurtleAIController>(CurrentController);
@@ -81,10 +43,11 @@ void ATurtleCharacter::BeginPlay()
 	bUseControllerRotationYaw = false;
 	MovementComponent = CurrentMovementComponent;
 	MovementComponent->bUseControllerDesiredRotation = true;
-	MovementComponent->RotationRate.Yaw = 200;
+	MovementComponent->RotationRate.Yaw = RotationRate;
 	MovementComponent->MaxWalkSpeed = MaxWalkSpeed;
 	
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Smoke, GetActorLocation());
+	
 	WalkForward();
 }
 
@@ -108,44 +71,10 @@ void ATurtleCharacter::MoveRight(float Amount)
 	AddMovementInput(GetActorRightVector(), Amount);
 }
 
-FVector ATurtleCharacter::GetGoalLocation() const
-{
-	return GoalLocation;
-}
-
-void ATurtleCharacter::SetGoalLocation(const FVector Location)
-{
-	GoalLocation = Location;
-}
-
-
 ATurtleAIController* ATurtleCharacter::GetAIController() const
 {
 	return CurrentAIController;
 }
-
-void ATurtleCharacter::SetNiagaraSystems(UNiagaraSystem* Confettir, UNiagaraSystem* Smoker)
-{
-	Confetti = Confettir;
-	Smoke = Smoker;
-}
-
-void ATurtleCharacter::SetGoalSound(USoundCue* GoalCue)
-{
-	AlternateGoalCue = GoalCue;
-	if (AlternateGoalCue)
-		GoalAudioComponent->SetSound(AlternateGoalCue);
-
-
-}
-
-void ATurtleCharacter::SetPoofSound(USoundCue* PoofCue)
-{
-	AlternatePoofCue = PoofCue;
-	if (AlternatePoofCue)
-		PoofAudioComponent->SetSound(AlternatePoofCue);
-}
-
 
 void ATurtleCharacter::WalkForward()
 {
@@ -218,27 +147,13 @@ void ATurtleCharacter::OnGoal()
 	{
 
 		GetWorld()->GetTimerManager().ClearTimer(MovementTimerHandle);
-		const FVector EmmiterLocation = GetActorLocation();
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Confetti, EmmiterLocation);
+		const FVector EmitterLocation = GetActorLocation();
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Confetti, EmitterLocation);
 		
 		GoalAudioComponent->Play();
 	}
 
 	bIsResting = true;
-}
-
-void ATurtleCharacter::SetSkeletalMesh(USkeletalMesh* SkeletalMesh, UAnimBlueprint* AnimBlueprint, FVector RelativeLocation, FRotator RelativeRotation)
-{
-	AlternateSkeletalMesh = SkeletalMesh;
-	AlternateAnimBlueprint = AnimBlueprint;
-	if(AlternateAnimBlueprint && AlternateSkeletalMesh)
-	{
-		USkeletalMeshComponent* CurrentMesh = GetMesh();
-		CurrentMesh->SetSkeletalMesh(AlternateSkeletalMesh);
-		CurrentMesh->SetAnimInstanceClass(AlternateAnimBlueprint->StaticClass());
-		CurrentMesh->SetRelativeLocation(RelativeLocation);
-		CurrentMesh->SetRelativeRotation(RelativeRotation);
-	}
 }
 
 bool ATurtleCharacter::GetRestingCondition()

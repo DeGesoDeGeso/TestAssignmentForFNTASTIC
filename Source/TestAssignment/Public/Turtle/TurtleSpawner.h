@@ -10,10 +10,9 @@
 
 class UUsableComponent;
 class ATurtleCharacter;
-class UNiagaraSystem;
 class USoundCue;
 
-UCLASS()
+UCLASS(Blueprintable)
 class TESTASSIGNMENT_API ATurtleSpawner : public AActor, public ITriggerInterface
 {
 	GENERATED_BODY()
@@ -23,35 +22,24 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMeshComponent* StaticMeshComponent;
-
-	UPROPERTY()
-	UStaticMesh* StaticMesh;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	UUsableComponent* ButtonComponent;
 
-	UPROPERTY()
-	UStaticMesh* ButtonMesh;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMeshComponent* GateComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
-	UNiagaraSystem* Confetti;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
-	UNiagaraSystem* Smoke;
-
-	UPROPERTY()
-	UStaticMesh* GateMesh;
 
 	UPROPERTY()
 	ATurtleCharacter* Turtle;
 
-public:	
+public:
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* StaticMeshComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UUsableComponent* ButtonComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* GateComponent;
+	
+	
 	UFUNCTION(BlueprintCallable)
 	void SpawnTurtle();
 
@@ -61,31 +49,16 @@ public:
 	virtual void TriggerReact_Implementation() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+	TSubclassOf<class ATurtleCharacter> ToSpawnTurtle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 	EMovementType MovementType = EMovementType::MT_AlwaysForward;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	USkeletalMesh* AlternateTurtleSkeletalMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	FVector TurtleMeshRelativeLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	FRotator TurtleMeshRelativeRotation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	UAnimBlueprint* AlternateTurtleAnimBlueprint;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	USoundCue* AlternatePoofCue;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	USoundCue* AlternateGoalCue;
 
 	UFUNCTION(BlueprintCallable, Category = "Spawn")
 	FVector GetGoalLocation() const;
 
 private:
-	FTransform DefineTurtleSpawnTransform() const;
-	FVector DefineGoalLocation() const;
+	FTransform CalculateTurtleSpawnTransform() const;
+	FVector CalculateGoalLocation() const;
 
 };

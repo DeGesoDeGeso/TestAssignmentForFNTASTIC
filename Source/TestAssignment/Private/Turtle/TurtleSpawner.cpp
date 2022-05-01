@@ -13,18 +13,12 @@ ATurtleSpawner::ATurtleSpawner()
 	
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshAsset(TEXT("StaticMesh'/Game/Assets/World/Kennel.Kennel'"));
-	StaticMeshComponent->SetStaticMesh(StaticMeshAsset.Object);
 
 	ButtonComponent = CreateDefaultSubobject<UUsableComponent>("Button");
 	ButtonComponent->SetupAttachment(StaticMeshComponent);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ButtonMeshAsset(TEXT("StaticMesh'/Game/Assets/World/Button.Button'"));
-	ButtonComponent->SetStaticMesh(ButtonMeshAsset.Object);
 
 	GateComponent = CreateDefaultSubobject<UStaticMeshComponent>("GateMesh");
 	GateComponent->SetupAttachment(StaticMeshComponent);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> GateMeshAsset(TEXT("StaticMesh'/Game/Assets/World/Gate.Gate'"));
-	GateComponent->SetStaticMesh(GateMeshAsset.Object);	
 }
 
 void ATurtleSpawner::BeginPlay()
@@ -42,21 +36,19 @@ void ATurtleSpawner::SpawnTurtle()
 		Turtle->Destroy();
 	}
 	
-	const FTransform SpawnTransform = DefineTurtleSpawnTransform();
-	UWorld* World = GetWorld();
-	if(!World)
-		return;
 	
-	ATurtleCharacter* CurrentTurtle = World->SpawnActorDeferred<ATurtleCharacter>(ATurtleCharacter::StaticClass(), SpawnTransform);
-	if(!CurrentTurtle)
+	UWorld* World = GetWorld();
+	if(!World || !ToSpawnTurtle)
+		return;
+
+	const FTransform SpawnTransform = CalculateTurtleSpawnTransform();
+	ATurtleCharacter* CurrentTurtle = World->SpawnActorDeferred<ATurtleCharacter>(ToSpawnTurtle, SpawnTransform);
+
+	if (!CurrentTurtle)
 		return;
 	
 	CurrentTurtle->SetMovementType(MovementType);
-	CurrentTurtle->SetGoalLocation(DefineGoalLocation());
-	CurrentTurtle->SetNiagaraSystems(Confetti, Smoke);
-	CurrentTurtle->SetSkeletalMesh(AlternateTurtleSkeletalMesh, AlternateTurtleAnimBlueprint, TurtleMeshRelativeLocation, TurtleMeshRelativeRotation);
-	CurrentTurtle->SetGoalSound(AlternateGoalCue);
-	CurrentTurtle->SetPoofSound(AlternatePoofCue);
+	CurrentTurtle->GoalLocation = CalculateGoalLocation();
 	CurrentTurtle->FinishSpawning(SpawnTransform);
 	Turtle = CurrentTurtle;
 	
@@ -68,7 +60,7 @@ void ATurtleSpawner::TriggerReact_Implementation()
 }
 
 
-FTransform ATurtleSpawner::DefineTurtleSpawnTransform() const
+FTransform ATurtleSpawner::CalculateTurtleSpawnTransform() const
 {
 	FTransform TurtleTransform = StaticMeshComponent->GetComponentTransform();
 	FVector Location = TurtleTransform.GetLocation();
@@ -83,7 +75,7 @@ FTransform ATurtleSpawner::DefineTurtleSpawnTransform() const
 
 }
 
-FVector ATurtleSpawner::DefineGoalLocation() const
+FVector ATurtleSpawner::CalculateGoalLocation() const
 {
 	FVector Location = GateComponent->GetComponentTransform().GetLocation();
 	Location.Z -= 440;
@@ -92,5 +84,5 @@ FVector ATurtleSpawner::DefineGoalLocation() const
 
 FVector ATurtleSpawner::GetGoalLocation() const
 {
-	return DefineGoalLocation();
+	return CalculateGoalLocation();
 }
